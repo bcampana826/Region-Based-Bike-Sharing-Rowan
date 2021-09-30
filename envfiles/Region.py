@@ -25,8 +25,8 @@ class Region:
                     if 0 <= y + j < size:
                         # if they are both -1 or +1, then its diagonal
                         if i + j == 0:
-                            self.surrounding_regions.append([regions[i][j], False])
+                            self.surrounding_regions.append(regions[i][j])
                         # do nothing if its the main region
                         elif i != 0 or j != 0:
-                            self.surrounding_regions.append([regions[i][j], True])
+                            self.surrounding_regions.append(regions[i][j])
 

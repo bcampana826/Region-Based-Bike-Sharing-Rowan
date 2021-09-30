@@ -14,9 +14,9 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
     def __init__(self, seed_number, model_name):
 
         if seed_number is -1:
-            self.seed_file = open(("RBBS-Seeds/" + str(Region_Based_Bike_Sharing_Env.generate_seed()) + ".txt"), "r")
+            self.seed_file = open(("../RBBS-Seeds/" + str(Region_Based_Bike_Sharing_Env.generate_seed()) + ".txt"), "r")
         else:
-            self.seed_file = open(("RBBS-Seeds/" + str(seed_number) + ".txt"), "r")
+            self.seed_file = open(("../RBBS-Seeds/" + str(seed_number) + ".txt"), "r")
 
         run_info = self.seed_file.readlines()
 
@@ -56,7 +56,7 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
 
         # Now with all the seed data, setup env.
         self.model_name = model_name
-        self.env_data = open(("RBBS-Data/" + model_name + ".txt"), "w")
+        self.env_data = open(("../RBBS-Data/" + model_name + ".txt"), "w")
 
     def step(self, action):
 
@@ -98,7 +98,7 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
 
         return np.array(obs), hourly_success, done, {"info": str(self.hour)}
 
-    def complete_trip(self, action, trip):
+    def complete(self, action, trip):
         # couple things have to happen
         # first -   check the persons starting region to see if any bikes are in there
         #           if so, take a bike and end
@@ -148,10 +148,62 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
 
             return False
 
+
+    def complete_trip(self, action, trip):
+
+        # First - Find the starting region, check for bikes here, complete trip if so
+        starting_reg = self.map.regions[int(trip.x_start/10)][int(trip.y_start/10)]
+        if len(starting_reg.bikes) > 0:
+            # Bikes are in the region, take from the closest and complete.
+            closest = Map.closest_bike(trip, starting_reg.bikes)
+
+            # Move that bike into transit, complete.
+            self.map.bike_in_transit(closest, trip.x_end, trip.y_end)
+
+        # Now - We need to iterate through all the surrounding regions and get their bikes
+        #
+        # For this Iteration, the user will always pick the bike with the highest "user-worth'
+        # user-worth = Incentive - Walking Cost IFF Incentive <= Remaining Budget
+        # Walking Cost = 1/2 Distance to Bike
+
+        nearby_reg = starting_reg.surrounding_regions
+        highestUW = -1
+        highestUW_bike = None
+        highestUW_reg = None
+
+        # For each region nearby the starting reg, grab their bikes, get the UW, save if highest
+        for reg in nearby_reg:
+            # First check if the incentive for this region is over budget and that the region has bikes
+            if len(reg.bikes) > 0 and action[reg.x_coord][reg.y_coord] <= self.temp_day_budget:
+                # Checked the two gate keeping params, now iterate through bikes.
+                for bike in reg.bikes:
+                    tempWC = int(.5 * Map.calc_distance(trip.x_start, trip.y_start, bike.x_coord, bike.y_coord))
+                    tempUW = action[reg.x_coord][reg.y_coord] - tempWC
+
+                    # Check temp UW on highest
+                    if tempUW > highestUW:
+                        highestUW_bike = bike
+                        highestUW = tempUW
+                        highestUW_reg = reg
+
+        # Clean up - if after the dust settles highestUW_bike is still None, no bike is sold
+        # If not, take the bike saved at highestUW_bike
+        if highestUW_bike is None:
+            # Trip failed.
+            return False
+        else:
+            # Trip successful
+            self.map.bike_in_transit(highestUW_bike, trip.x_end, trip.y_end)
+            self.temp_day_budget -= action[highestUW_reg.x_coord][highestUW_reg.y_coord]
+            return True
+
+
     def reset(self):
 
         data = float(self.successful_trips) / float(self.numb_of_trips)
-
+        print(self.successful_trips)
+        print(self.numb_of_trips)
+        print(data)
         self.env_data.write((str(data) + "\n"))
         self.temp_day_reward = 0
         self.temp_day_budget = self.daily_budget

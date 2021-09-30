@@ -6,7 +6,7 @@ from envfiles.RbbsEnv import Region_Based_Bike_Sharing_Env
 
 # Create environment
 print("env")
-env = Region_Based_Bike_Sharing_Env(6, "TRPO")
+env = Region_Based_Bike_Sharing_Env(1, "TRPO_longer")
 
 # Instantiate the agent
 print("model")
@@ -17,7 +17,7 @@ print(mean_reward)
 print(std_reward)
 # Train the agent
 print("learn")
-timesteps = int(2e5)
+timesteps = int(4e5)
 model.learn(total_timesteps=timesteps)
 
 mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
