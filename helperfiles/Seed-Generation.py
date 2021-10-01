@@ -27,7 +27,7 @@ def generate_seed(map_size, budget, bikes_in_circulation, max_hourly_customers):
         data_file.write("Hour: " + str(hour) + ": ")
 
         # Generate Trips in this Hour
-        number_of_trips = random.randint(1, max_hourly_customers)
+        number_of_trips = random.randint(int(max_hourly_customers/2), max_hourly_customers)
 
         for trip in range(number_of_trips):
 
