@@ -1,7 +1,7 @@
 from envfiles.RbbsEnv import Region_Based_Bike_Sharing_Env
 
 # File used for testing the environment on a static algorithm
-env = Region_Based_Bike_Sharing_Env(1, "GREEDY")
+env = Region_Based_Bike_Sharing_Env(6, "GREEDY-6")
 
 state = env.map.get_state(env.hour,env.daily_budget)
 # state = [hour, each region .. .. .. , day_budget]

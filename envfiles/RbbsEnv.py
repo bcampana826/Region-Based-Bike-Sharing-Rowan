@@ -159,6 +159,7 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
 
             # Move that bike into transit, complete.
             self.map.bike_in_transit(closest, trip.x_end, trip.y_end)
+            return True
 
         # Now - We need to iterate through all the surrounding regions and get their bikes
         #
@@ -201,12 +202,13 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
     def reset(self):
 
         data = float(self.successful_trips) / float(self.numb_of_trips)
-        print(self.successful_trips)
-        print(self.numb_of_trips)
-        print(data)
         self.env_data.write((str(data) + "\n"))
         self.temp_day_reward = 0
         self.temp_day_budget = self.daily_budget
+
+        print(self.successful_trips)
+        print(self.numb_of_trips)
+        print(data)
 
         self.successful_trips = 0
         self.hour = 0
