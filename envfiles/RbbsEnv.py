@@ -98,57 +98,6 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
 
         return np.array(obs), hourly_success, done, {"info": str(self.hour)}
 
-    def complete(self, action, trip):
-        # couple things have to happen
-        # first -   check the persons starting region to see if any bikes are in there
-        #           if so, take a bike and end
-        starting_region = self.map.regions[int(trip.x_start/10)][int(trip.y_start/10)]
-        if len(starting_region.bikes) > 0:
-
-
-            # Has bikes in region, take from there, no incentive needed
-            closest_bike_in_region = self.map.closest_bike(trip, starting_region.bikes)
-
-            self.map.bike_in_transit(closest_bike_in_region, trip.x_end, trip.y_end)
-            return True
-
-        # Now, we need to go through all of our regions adjacent regions and check them with out incentive
-        nearby = starting_region.surrounding_regions
-        best_deal = None
-        best_deal_cost = -1
-        for reg in nearby:
-            # WC =  dist*.5 ? this could change
-            # deal = action - wc
-
-            # if this region has a higher payout, look here for bikes instead
-            if best_deal is not None and action[reg.x_coord][reg.y_coord] > action[int(best_deal.x_coord / 10)][int(best_deal.y_coord / 10)]:
-
-                for bike in reg[0].bikes:
-
-                    cost = int((self.map.calc_distance(bike.x_coord, bike.y_coord, trip.x_start, trip.y_start) * .5))
-                    if action[reg[0].x_coord][reg[0].y_coord] <= self.temp_day_budget and best_deal_cost < action[reg[0].x_coord][reg[0].y_coord] - cost < 0:
-                        best_deal_cost = cost
-                        best_deal = bike
-
-            elif best_deal is None:
-
-                for bike in reg[0].bikes:
-
-                    cost = int((self.map.calc_distance(bike.x_coord, bike.y_coord, trip.x_start, trip.y_start) * .5))
-                    if action[reg[0].x_coord][reg[0].y_coord] <= self.temp_day_budget and best_deal_cost < action[reg[0].x_coord][reg[0].y_coord] - cost < 0:
-                        best_deal_cost = cost
-                        best_deal = bike
-
-        if best_deal is not None:
-            # now with found bike, remove it from the region its in and add it to moving bikes in map
-            self.map.bike_in_transit(best_deal, trip.x_end, trip.y_end)
-            self.temp_day_budget -= action[int(best_deal.x_coord/10)][int(best_deal.y_coord/10)]
-            return True
-        else:
-
-            return False
-
-
     def complete_trip(self, action, trip):
 
         # First - Find the starting region, check for bikes here, complete trip if so
