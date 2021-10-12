@@ -50,4 +50,4 @@ def generate_seed(map_size, budget, bikes_in_circulation, max_hourly_customers):
     return seed_number
 
 
-generate_seed(7, 450,500,245)
+generate_seed(7, 0 ,500,245)

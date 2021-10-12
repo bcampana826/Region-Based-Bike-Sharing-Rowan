@@ -60,12 +60,17 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
 
     def step(self, action):
 
-        reform_act = [[0]*self.size_of_env]*self.size_of_env
+        reform_act = []
         count = 0
+        print(action)
+        print(action[1])
         for x in range(self.size_of_env):
+            reform_act.append([0]*self.size_of_env)
             for y in range(self.size_of_env):
-                reform_act[x][y] = action[0]
+                reform_act[x][y] = action[count]
                 count += 1
+
+        print(reform_act)
 
         trips = self.trips[self.hour]
 
@@ -94,7 +99,7 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
             self.hour += 1
 
         # Get oberservation
-        obs = self.map.get_state(self.hour,self.temp_day_budget)
+        obs = self.map.get_state(self.hour, self.temp_day_budget)
 
         return np.array(obs), hourly_success, done, {"info": str(self.hour)}
 

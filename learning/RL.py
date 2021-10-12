@@ -3,10 +3,9 @@ from stable_baselines.common.evaluation import evaluate_policy
 from envfiles.RbbsEnv import Region_Based_Bike_Sharing_Env
 
 
-
 # Create environment
 print("env")
-env = Region_Based_Bike_Sharing_Env(6, "TRPO-Over-6")
+env = Region_Based_Bike_Sharing_Env(6, "test-runs")
 
 # Instantiate the agent
 print("model")
