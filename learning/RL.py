@@ -5,7 +5,7 @@ from envfiles.RbbsEnv import Region_Based_Bike_Sharing_Env
 
 # Create environment
 print("env")
-env = Region_Based_Bike_Sharing_Env(6, "test-runs")
+env = Region_Based_Bike_Sharing_Env(16, "working-trpo-16-normalEnv")
 
 # Instantiate the agent
 print("model")

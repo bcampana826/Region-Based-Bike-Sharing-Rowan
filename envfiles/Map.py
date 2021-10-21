@@ -45,18 +45,15 @@ class Map:
             y = int((bike.y_coord / 10))
             self.regions[x][y].bikes.append(bike)
 
-
     # Helper method to create, then fill regions with references to eachother
     def create_regions(self):
 
-        for y in range(self.size_of_map):
-            for x in range(self.size_of_map):
+        for x in range(self.size_of_map):
+            for y in range(self.size_of_map):
                 self.regions[x][y] = Region(x, y)
+                self.regions[x][y].set_surrounding_regions(self.size_of_map)
 
-        # Gives all the regions references to their surrounding regions for use later
-        for i in range(self.size_of_map):
-            for j in range(self.size_of_map):
-                self.regions[i][j].set_surrounding_regions(self.regions, self.size_of_map)
+
 
     # Method called to remove a bike from its region, add it to the intermediate transit list for use later
     def bike_in_transit(self, bike, end_x, end_y):

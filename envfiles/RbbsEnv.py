@@ -17,7 +17,7 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
             self.seed_file = open(("../RBBS-Seeds/" + str(Region_Based_Bike_Sharing_Env.generate_seed()) + ".txt"), "r")
         else:
             self.seed_file = open(("../RBBS-Seeds/" + str(seed_number) + ".txt"), "r")
-
+        #C:\Users\Brian\Desktop\SURP\Pycharm\Region-Based-Sharing\RBBS-Seeds\12.txt
         run_info = self.seed_file.readlines()
 
         # Saving Params
@@ -34,6 +34,7 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
         self.temp_day_reward = 0
         self.temp_day_budget = 0
         self.successful_trips = 0
+        self.walked = 0
 
         # Create Environment Map
         self.map = Map(self.size_of_env, run_info[2])
@@ -62,15 +63,11 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
 
         reform_act = []
         count = 0
-        print(action)
-        print(action[1])
         for x in range(self.size_of_env):
             reform_act.append([0]*self.size_of_env)
             for y in range(self.size_of_env):
                 reform_act[x][y] = action[count]
                 count += 1
-
-        print(reform_act)
 
         trips = self.trips[self.hour]
 
@@ -80,10 +77,13 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
 
             success = self.complete_trip(reform_act, trip)
 
-            if not success:
+            if success == -1:
                 failed_transactions += 1
-            else:
+            elif success == 0:
                 self.successful_trips += 1
+            elif success == 1:
+                self.successful_trips += 1
+                self.walked += 1
 
         hourly_success = (len(trips) - failed_transactions) / (len(trips))
 
@@ -113,7 +113,7 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
 
             # Move that bike into transit, complete.
             self.map.bike_in_transit(closest, trip.x_end, trip.y_end)
-            return True
+            return 0
 
         # Now - We need to iterate through all the surrounding regions and get their bikes
         #
@@ -122,17 +122,19 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
         # Walking Cost = 1/2 Distance to Bike
 
         nearby_reg = starting_reg.surrounding_regions
+
         highestUW = -1
         highestUW_bike = None
         highestUW_reg = None
 
         # For each region nearby the starting reg, grab their bikes, get the UW, save if highest
-        for reg in nearby_reg:
+        for x in nearby_reg:
+            reg = self.map.regions[x[0]][x[1]]
             # First check if the incentive for this region is over budget and that the region has bikes
             if len(reg.bikes) > 0 and action[reg.x_coord][reg.y_coord] <= self.temp_day_budget:
                 # Checked the two gate keeping params, now iterate through bikes.
                 for bike in reg.bikes:
-                    tempWC = int(.5 * Map.calc_distance(trip.x_start, trip.y_start, bike.x_coord, bike.y_coord))
+                    tempWC = int(Map.calc_distance(trip.x_start, trip.y_start, bike.x_coord, bike.y_coord))
                     tempUW = action[reg.x_coord][reg.y_coord] - tempWC
 
                     # Check temp UW on highest
@@ -145,26 +147,38 @@ class Region_Based_Bike_Sharing_Env(gym.Env):
         # If not, take the bike saved at highestUW_bike
         if highestUW_bike is None:
             # Trip failed.
-            return False
+            '''
+            for x in nearby_reg:
+                reg = self.map.regions[x[0]][x[1]]
+                for bike in reg.bikes:
+                    print("Bike - "+ str(bike.x_coord)+", "+str(bike.y_coord)+"- REG("+str(reg.x_coord)+","+str(reg.y_coord)+") -- Trip - "+str(trip.x_start)+", "+str(trip.y_start))
+                    print("Bike wc - " + str(int(Map.calc_distance(trip.x_start, trip.y_start, bike.x_coord, bike.y_coord))) + ", Reg Ac - " + str(action[reg.x_coord][reg.y_coord]))
+            '''
+
+            return -1
         else:
             # Trip successful
             self.map.bike_in_transit(highestUW_bike, trip.x_end, trip.y_end)
             self.temp_day_budget -= action[highestUW_reg.x_coord][highestUW_reg.y_coord]
-            return True
+            return 1
 
 
     def reset(self):
 
         data = float(self.successful_trips) / float(self.numb_of_trips)
         self.env_data.write((str(data) + "\n"))
+
+        print("Day Data - out of " + str(self.numb_of_trips) + ", " + str(
+            self.successful_trips) + " were sold with " + str(self.walked) + " walkers")
+        print("Budget remaining for the day is - " + str(self.temp_day_budget))
+
         self.temp_day_reward = 0
         self.temp_day_budget = self.daily_budget
 
-        print(self.successful_trips)
-        print(self.numb_of_trips)
-        print(data)
+
 
         self.successful_trips = 0
+        self.walked = 0
         self.hour = 0
 
         self.map.reset_bikes()
