@@ -249,7 +249,7 @@ def generate_seed_working(map_size, budget, bikes_in_circulation, max_hourly_cus
                 if trip != number_of_trips - 1:
                     data_file.write("-")
 
-        elif hour == 3 or hour == 4 or hour == 7 or hour == 8:
+        elif 2 < hour >= 8:
             # 3 - 4, 7 - 8 will be lower customer hours, with 100% random but only 10 - 30% customers
             number_of_trips = random.randint(int(max_hourly_customers * .1), int(max_hourly_customers * .3))
 
@@ -266,8 +266,58 @@ def generate_seed_working(map_size, budget, bikes_in_circulation, max_hourly_cus
 
                 if trip != number_of_trips - 1:
                     data_file.write("-")
+        else:
+            #9 - 10 - 11 will be home transport hours, where 40WH/40WR/20RR will be in effect with 50%-100% customers
+            number_of_trips = random.randint(int(max_hourly_customers *.5), max_hourly_customers)
 
-        elif hour == 5:
+            for trip in range(number_of_trips):
+
+                choice = random.randint(0, 99)
+
+                if choice < 39:
+                    # W H
+                    start_reg = random.choice(work)
+                    end_reg = random.choice(home)
+
+                    trip_start_x = random.randint(start_reg[0]*10, (start_reg[0]+1)*10 - 1)
+                    trip_start_y = random.randint(start_reg[1]*10, (start_reg[1]+1)*10 - 1)
+
+                    trip_end_x = random.randint(end_reg[0]*10, (end_reg[0]+1)*10 - 1)
+                    trip_end_y = random.randint(end_reg[1]*10, (end_reg[1]+1)*10 - 1)
+
+                elif choice < 79:
+                    # W R
+                    start_reg = random.choice(work)
+
+                    trip_start_x = random.randint(start_reg[0] * 10, (start_reg[0] + 1) * 10 - 1)
+                    trip_start_y = random.randint(start_reg[1] * 10, (start_reg[1] + 1) * 10 - 1)
+
+                    trip_end_x = random.randint(0, 10 * map_size - 1)
+                    trip_end_y = random.randint(0, 10 * map_size - 1)
+
+                else:
+
+                    trip_start_x = random.randint(0, 10 * map_size - 1)
+                    trip_start_y = random.randint(0, 10 * map_size - 1)
+
+                    trip_end_x = random.randint(0, 10 * map_size - 1)
+                    trip_end_y = random.randint(0, 10 * map_size - 1)
+
+                data_file.write("{(" + str(trip_start_x) + ";" + str(trip_start_y) +
+                                "),(" + str(trip_end_x) + ";" + str(trip_end_y) + ")}")
+
+                if trip != number_of_trips - 1:
+                    data_file.write("-")
+
+        data_file.write("\n")
+
+    data_file.close()
+
+    return seed_number
+
+generate_seed_working(7,600,300,245)
+
+''' elif hour == 5:
             #5 will be to the mini surge in the middle section, like a lunch time rush, with 40WM/20HM/20RM/20RR 50 - 75 % customers
 
 
@@ -376,55 +426,4 @@ def generate_seed_working(map_size, budget, bikes_in_circulation, max_hourly_cus
                                 "),(" + str(trip_end_x) + ";" + str(trip_end_y) + ")}")
 
                 if trip != number_of_trips - 1:
-                    data_file.write("-")
-
-        else:
-            #9 - 10 - 11 will be home transport hours, where 40WH/40WR/20RR will be in effect with 50%-100% customers
-            number_of_trips = random.randint(int(max_hourly_customers *.5), max_hourly_customers)
-
-            for trip in range(number_of_trips):
-
-                choice = random.randint(0, 99)
-
-                if choice < 39:
-                    # W H
-                    start_reg = random.choice(work)
-                    end_reg = random.choice(home)
-
-                    trip_start_x = random.randint(start_reg[0]*10, (start_reg[0]+1)*10 - 1)
-                    trip_start_y = random.randint(start_reg[1]*10, (start_reg[1]+1)*10 - 1)
-
-                    trip_end_x = random.randint(end_reg[0]*10, (end_reg[0]+1)*10 - 1)
-                    trip_end_y = random.randint(end_reg[1]*10, (end_reg[1]+1)*10 - 1)
-
-                elif choice < 79:
-                    # W R
-                    start_reg = random.choice(work)
-
-                    trip_start_x = random.randint(start_reg[0] * 10, (start_reg[0] + 1) * 10 - 1)
-                    trip_start_y = random.randint(start_reg[1] * 10, (start_reg[1] + 1) * 10 - 1)
-
-                    trip_end_x = random.randint(0, 10 * map_size - 1)
-                    trip_end_y = random.randint(0, 10 * map_size - 1)
-
-                else:
-
-                    trip_start_x = random.randint(0, 10 * map_size - 1)
-                    trip_start_y = random.randint(0, 10 * map_size - 1)
-
-                    trip_end_x = random.randint(0, 10 * map_size - 1)
-                    trip_end_y = random.randint(0, 10 * map_size - 1)
-
-                data_file.write("{(" + str(trip_start_x) + ";" + str(trip_start_y) +
-                                "),(" + str(trip_end_x) + ";" + str(trip_end_y) + ")}")
-
-                if trip != number_of_trips - 1:
-                    data_file.write("-")
-
-        data_file.write("\n")
-
-    data_file.close()
-
-    return seed_number
-
-generate_seed_working(7,300000,300,245)
+                    data_file.write("-")'''

@@ -1,4 +1,7 @@
+from stable_baselines import A2C, PPO2, TRPO, PPO1, ACKTR
+from stable_baselines.common.evaluation import evaluate_policy
 from envfiles.RbbsEnv import Region_Based_Bike_Sharing_Env
+from helperfiles.SeedGeneration import generate_seed_working
 
 def greedyTesting(seed, str):
 
@@ -30,4 +33,28 @@ def greedyTesting(seed, str):
             count += 1
             state = env.map.get_state(env.hour, env.daily_budget)
 
-greedyTesting(2,"2")
+budgets = [1, 2, 5, 10, 15]
+bikes = [.5, .75, 1, 1.25, 1.5, 2]
+people = [300, 600, 900]
+
+for i in range(len(budgets)):
+    for j in range(len(bikes)):
+        for k in range(len(people)):
+
+
+
+            string = str(people[k])+"-"+str(bikes[j])+"-"+str(budgets[i])
+            seednum = generate_seed_working(7, int(budgets[i]*people[k]), int(bikes[j]*people[k]), people[k])
+
+            env = Region_Based_Bike_Sharing_Env(seednum, string)
+            greedyTesting(seednum, string)
+
+            model = PPO2('MlpPolicy', env, verbose=1)
+
+            mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
+
+            timesteps = int(2e5)
+            model.learn(total_timesteps=timesteps)
+
+            mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
+
