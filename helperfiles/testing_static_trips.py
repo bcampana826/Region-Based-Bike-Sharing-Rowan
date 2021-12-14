@@ -1,5 +1,8 @@
+# testing static trips with 600 max customers per hour
+from stable_baselines import TRPO
+
 from envfiles.RbbsEnv import Region_Based_Bike_Sharing_Env
-import os
+from helperfiles import SeedGeneration
 
 
 def greedyTesting(seed, str):
@@ -60,17 +63,51 @@ def noIncentive(seed, str):
 
     env.env_data.close()
 
-def test_greedies():
-    for files in os.listdir('C:\\Users\\Brian\\Desktop\\SURP\\Pycharm\\Region-Based-Sharing\\RBBS-Seeds'):
-        if files.count(".txt") > 0:
-            seed_file = open(("../RBBS-Seeds/" + files),
-                             "r")
+bikes = [.5, .75, 1, 1.25, 1.5, 2]
+budgets = [1, 2, 5, 10, 15]
 
-            text = seed_file.readlines()
-            print(text[1])
+# Data Saving Setup
+data_file = open(("../RBBS-Data/" + "StaticTestInfo.txt"), "w")
 
-            greedyTesting(int(files.split(".")[0]), "TRPO-" + str(float(text[1].split(",")[2]) / 600) + "-" + str(
-                float(text[1].split(",")[1]) / 600))
+for i in range(len(bikes)):
+    for j in range(len(budgets)):
+        text = "TRPO-"+str(bikes[i])+"-"+str(budgets[j])
+        '''
+        seed = SeedGeneration.generate_static_trips(7, budgets[j]*600, int(bikes[i]*600))
+        env = Region_Based_Bike_Sharing_Env(seed, text)
 
+        # Instantiate the agent
+        model = TRPO('MlpPolicy', env, verbose=1)
 
-test_greedies()
+        # Train the agent
+        timesteps = int(2e5)
+        model.learn(total_timesteps=timesteps)
+        env.env_data.close()
+
+        # Greedy
+        greedyTesting(seed, text)
+
+        # no incentive testing
+        noIncentive(seed, text)
+        '''
+        trained = open(("../RBBS-Data/"+text+".txt"), "r")
+        trained_data = [float(n) for n in trained]
+        trained_start = trained_data[5]
+        trained_end = trained_data[16679]
+        trained_learn = trained_end - trained_start
+
+        greedy = open(("../RBBS-Data/"+text+"-greedy"+".txt"), "r")
+        greedy_data = [float(n) for n in greedy]
+        greedy_value = greedy_data[50]
+
+        noIncen = open(("../RBBS-Data/"+text+"-noINCEN"+".txt"),"r")
+        noIncen_data = [float(n) for n in noIncen]
+        noIncen_value = noIncen_data[10]
+
+        data_file.write(text+"\n")
+        data_file.write("\tTrained Start: "+str(trained_start)+"\n")
+        data_file.write("\tTrained End: " + str(trained_end) + "\n")
+        data_file.write("\tTrained learn: " + str(trained_learn) + "\n")
+        data_file.write("\tGreedy: " + str(greedy_value) + "\n")
+        data_file.write("\tNo Incentive: " + str(noIncen_value) + "\n")
+

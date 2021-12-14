@@ -5,7 +5,7 @@ import os
 
 data_file = open(("../RBBS-Data/LongStatReadings.txt"), "w")
 
-long_stats_dirc = "../RBBS-Data/long-stats"
+long_stats_dirc = "../RBBS-Data/Static-stats"
 long_greedy_dirc = "../RBBS-Data/long-stats-greedy"
 
 for filename in os.listdir(long_stats_dirc):
@@ -15,10 +15,10 @@ for filename in os.listdir(long_stats_dirc):
     long_end = long_file_data[16679]
     long_learn = long_end - long_start
 
-    greedy_file = open((long_greedy_dirc + "/" + filename.strip(".txt") + "-greedy.txt"), "r")
-    greedy_file_data = [float(n) for n in greedy_file]
-    greedy = greedy_file_data[50]
-
-    data_file.write(filename + " " + str(long_start) + " " + str(long_end) + " " + str(long_learn) + " " + str(greedy)+"\n")
+    #greedy_file = open((long_greedy_dirc + "/" + filename.strip(".txt") + "-greedy.txt"), "r")
+    #greedy_file_data = [float(n) for n in greedy_file]
+    #greedy = greedy_file_data[50]
+                                                                                        #" " + str(greedy)+
+    data_file.write(filename + " " + str(long_start) + " " + str(long_end) + " " + str(long_learn) + "\n")
 
 
